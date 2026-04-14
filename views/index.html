@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G Handover Optimization Dashboard</title>
+    <link rel="stylesheet" href="../style/styles.css">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <p class="eyebrow">Q-Learning for 5G Networks</p>
+            <h1>Handover Optimization Dashboard</h1>
+            <p class="hero-copy">
+                This view highlights the most useful graphs for explaining how the agent learns to reduce
+                unnecessary handovers while still reaching the target state efficiently.
+            </p>
+            <div class="hero-panels">
+                <article class="info-card">
+                    <h2>Best Graphs To Show</h2>
+                    <ul class="graph-list">
+                        <li><strong>Rewards vs Episodes</strong> to show whether the agent is learning better decisions.</li>
+                        <li><strong>Handovers vs Episodes</strong> to prove that switching is becoming more efficient.</li>
+                        <li><strong>Cumulative Success</strong> to show long-term training stability.</li>
+                        <li><strong>Benchmark Plot</strong> to compare the handover task with standard Q-learning behavior.</li>
+                    </ul>
+                </article>
+                <article class="info-card accent-card">
+                    <h2>New Graph Added</h2>
+                    <p>
+                        The new <strong>Reward vs Handovers trade-off plot</strong> is now part of the dashboard.
+                        It directly shows whether fewer handovers are producing better outcomes.
+                    </p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <div class="section-heading">
+                <p class="section-label">Primary Metrics</p>
+                <h2>Graphs You Should Present First</h2>
+            </div>
+            <div class="plot-grid">
+                <figure class="plot-card featured">
+                    <img src="../dashboard_plots/Rewards_vs_Episodes_Sampled.png" alt="Rewards versus episodes plot">
+                    <figcaption>
+                        <h3>Rewards vs Episodes</h3>
+                        <p>Shows how the learned policy improves across training episodes.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card featured">
+                    <img src="../dashboard_plots/Handovers_vs_Episodes_Sampled.png" alt="Handovers versus episodes plot">
+                    <figcaption>
+                        <h3>Handovers vs Episodes</h3>
+                        <p>Measures whether the model reduces unnecessary handovers over time.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Cumulative_Success.png" alt="Cumulative success plot">
+                    <figcaption>
+                        <h3>Cumulative Success</h3>
+                        <p>Useful for showing that successful outcomes keep increasing during training.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Steps_vs_Episodes_Sampled.png" alt="Steps taken per episode plot">
+                    <figcaption>
+                        <h3>Steps vs Episodes</h3>
+                        <p>Helps explain path efficiency and how quickly the agent reaches its target.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="section-block">
+            <div class="section-heading">
+                <p class="section-label">Supporting Metrics</p>
+                <h2>Additional Graphs For Analysis</h2>
+            </div>
+            <div class="plot-grid secondary-grid">
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Reward_vs_Handovers_Tradeoff.png" alt="Reward versus handovers trade-off plot">
+                    <figcaption>
+                        <h3>Reward vs Handovers</h3>
+                        <p>Directly shows whether reducing handovers is improving the final reward.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Cumulative_Rewards_Sampled.png" alt="Cumulative rewards plot">
+                    <figcaption>
+                        <h3>Cumulative Rewards</h3>
+                        <p>Shows the overall reward trend across the full training run.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Histogram_of_Handovers.png" alt="Histogram of handovers">
+                    <figcaption>
+                        <h3>Histogram of Handovers</h3>
+                        <p>Summarizes how frequently different handover counts occur.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../dashboard_plots/Epsilon_Decay_Sampled.png" alt="Epsilon decay plot">
+                    <figcaption>
+                        <h3>Epsilon Decay</h3>
+                        <p>Explains the exploration-to-exploitation transition during learning.</p>
+                    </figcaption>
+                </figure>
+                <figure class="plot-card">
+                    <img src="../qlearning_plots/Plot.png" alt="Standalone Q-learning benchmark plot">
+                    <figcaption>
+                        <h3>Benchmark Plot</h3>
+                        <p>Compares this project's training behavior with the separate Q-learning baseline.</p>
+                    </figcaption>
+                </figure>
+            </div>
+        </section>
+
+        <section class="footer-note">
+            <p>
+                If any image looks missing, regenerate the dashboard plots by running
+                <code>.\.venv\Scripts\python.exe main.py --episodes 1000 --plot-dir dashboard_plots</code>.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

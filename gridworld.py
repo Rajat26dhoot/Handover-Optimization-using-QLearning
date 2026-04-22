@@ -1,8 +1,9 @@
 import numpy as np
 
+
 class GridWorld:
     def __init__(self, rows, cols, start, goal, antennas, pos):
-        self.action_space = ['r', 'u', 'l', 'd']
+        self.action_space = ["r", "u", "l", "d"]
         self.rows = rows
         self.cols = cols
         self.state = start
@@ -10,6 +11,12 @@ class GridWorld:
         self.Goal = goal
         self.Antennas = antennas
         self.done = False
+        self.goal_reward = 100.0
+        self.progress_reward = 3.0
+        self.step_penalty = -0.5
+        self.handover_penalty = -1.5
+        self.stable_link_bonus = 0.75
+        self.invalid_move_penalty = -2.5
         self.grid = np.zeros((self.rows, self.cols))
         self.grid[self.Goal] = 2
         for i in pos:
@@ -19,60 +26,85 @@ class GridWorld:
         self.state = self.Start
         self.done = False
 
-    def step(self, action, antenna, eps, signal_availability, Q):
-        r, c = self.state
-        old_antenna = antenna
-        if action == 'u':
-            r -= 1
-        elif action == 'd':
-            r += 1
-        elif action == 'r':
-            c += 1
-        elif action == 'l':
-            c -= 1
+    def _distance_to_goal(self, state):
+        return abs(state[0] - self.Goal[0]) + abs(state[1] - self.Goal[1])
+
+    def _select_next_antenna(self, state, eps, signal_availability, Q):
+        available_antennas = signal_availability.get(state, [])
+        if not available_antennas:
+            return None
 
         if np.random.rand() < eps:
-            for i in signal_availability.keys():
-                if i == (r, c):
-                    antenna = np.random.choice(signal_availability[i])
+            return np.random.choice(available_antennas)
+
+        q_values = Q.get(state, {})
+        if not q_values:
+            return available_antennas[0]
+
+        return max(q_values, key=q_values.get)
+
+    def step(self, action, antenna, eps, signal_availability, Q):
+        current_state = self.state
+        old_antenna = antenna
+        old_distance = self._distance_to_goal(current_state)
+        r, c = current_state
+
+        if action == "u":
+            r -= 1
+        elif action == "d":
+            r += 1
+        elif action == "r":
+            c += 1
+        elif action == "l":
+            c -= 1
+
+        proposed_state = (r, c)
+        invalid_move = not (0 <= r < self.rows and 0 <= c < self.cols)
+        if invalid_move:
+            next_state = current_state
         else:
-            for i in signal_availability.keys():
-                if i == (r, c):
-                    antenna = max(Q[(r, c)], key=Q[(r, c)].get)
+            next_state = proposed_state
 
-        new_antenna = antenna
+        self.state = next_state
+        new_distance = self._distance_to_goal(self.state)
+        new_antenna = self._select_next_antenna(self.state, eps, signal_availability, Q)
+        if new_antenna is None:
+            new_antenna = old_antenna
 
-        if 0 <= r < self.rows and 0 <= c < self.cols:
-            self.state = (r, c)
+        handover = 1 if old_antenna != new_antenna else 0
 
         if self.state == self.Goal:
-            reward = 100
-            handover = 0
+            reward = self.goal_reward
+            reward += self.handover_penalty if handover else self.stable_link_bonus
             self.done = True
         else:
-            if old_antenna != new_antenna:
-                reward = -1  # Handover
-                handover = 1
-            else:
-                reward = 0  # No Handover
-                handover = 0
+            reward = self.step_penalty
+            reward += self.progress_reward * (old_distance - new_distance)
+            reward += self.handover_penalty if handover else self.stable_link_bonus
+            if invalid_move:
+                reward += self.invalid_move_penalty
 
-        return self.state, reward, handover, self.done, None
+        info = {
+            "serving_antenna": new_antenna,
+            "invalid_move": invalid_move,
+            "distance_delta": old_distance - new_distance,
+        }
+        return self.state, reward, handover, self.done, info
 
     def show_grid(self):
         self.grid[self.Start] = 1
         for r in range(self.rows):
-            print(' -------------------------')
-            output = ''
+            print(" -------------------------")
+            output = ""
             for c in range(self.cols):
                 if self.grid[r, c] == 1:
-                    value = 'M'
+                    value = "M"
                 elif self.grid[r, c] == 0:
-                    value = '0'
+                    value = "0"
                 elif self.grid[r, c] == -1:
-                    value = 'A'
+                    value = "A"
                 elif self.grid[r, c] == 2:
-                    value = 'G'
-                output += ' | ' + value
-            print(output + ' | ')
-        print(' -------------------------')
+                    value = "G"
+                output += " | " + value
+            print(output + " | ")
+        print(" -------------------------")

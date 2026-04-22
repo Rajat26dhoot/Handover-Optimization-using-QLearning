@@ -1,5 +1,7 @@
-import numpy as np
 import random
+
+import numpy as np
+
 
 class Agent:
     def __init__(self, rows, cols, actions, signal_availability):
@@ -8,36 +10,39 @@ class Agent:
         self.actions = actions
         self.Model = {}
         self.Q = {}
-        for r in range(rows):
-            for c in range(cols):
-                self.Q[(r, c)] = {}
-                for i in signal_availability.keys():
-                    if i == (r, c):
-                        for ant in signal_availability[i]:
-                            self.Q[(r, c)][ant] = 0
+        self.movement_Q = {}
+        self.reset(rows, cols, signal_availability)
 
-    def antenna_selection(self, state, action, eps, signal_availability, Q):
-        r, c = state
+    def antenna_selection(self, state, eps, signal_availability, Q):
+        available_antennas = signal_availability.get(state, [])
+        if not available_antennas:
+            raise ValueError(f"No antennas available for state {state}.")
+
         if np.random.rand() < eps:
-            for i in signal_availability.keys():
-                if i == (r, c):
-                    antenna = random.choice(signal_availability[i])
-        else:
-            for i in signal_availability.keys():
-                if i == (r, c):
-                    antenna = max(Q[(r, c)], key=Q[(r, c)].get)
-        return antenna
+            return random.choice(available_antennas)
 
-    def action_selection(self, state):
-        action = random.choice(self.actions)
-        return action
+        return max(Q[state], key=Q[state].get)
 
-    def Q_update(self, state, antenna, next_state, reward, lr, gamma, Q):
-        next_max = max(list(Q[next_state].values()))
+    def action_selection(self, state, eps, movement_Q):
+        if np.random.rand() < eps:
+            return random.choice(self.actions)
+
+        return max(movement_Q[state], key=movement_Q[state].get)
+
+    def Q_update(self, state, antenna, next_state, reward, lr, gamma, Q, done=False):
+        next_values = list(Q[next_state].values())
+        next_max = 0.0 if done or not next_values else max(next_values)
         Q[state][antenna] = (1 - lr) * Q[state][antenna] + lr * (reward + gamma * next_max)
 
+    def movement_Q_update(self, state, action, next_state, reward, lr, gamma, movement_Q, done=False):
+        next_max = 0.0 if done else max(movement_Q[next_state].values())
+        movement_Q[state][action] = (
+            (1 - lr) * movement_Q[state][action]
+            + lr * (reward + gamma * next_max)
+        )
+
     def Model_update(self, state, antenna, next_state, reward):
-        if state not in self.Model.keys():
+        if state not in self.Model:
             self.Model[state] = {}
         self.Model[state][antenna] = (next_state, reward)
 
@@ -49,15 +54,17 @@ class Agent:
             random_action = list(self.Model[random_state])[rand_a]
             next_state_r, reward_r = self.Model[random_state][random_action]
             next_max = max(list(Q[random_state].values()))
-            Q[random_state][random_action] = (1 - lr) * Q[random_state][random_action] + lr * (reward_r + gamma * next_max)
+            Q[random_state][random_action] = (
+                (1 - lr) * Q[random_state][random_action]
+                + lr * (reward_r + gamma * next_max)
+            )
 
     def reset(self, rows, cols, signal_availability):
         self.Q = {}
+        self.movement_Q = {}
         for r in range(rows):
             for c in range(cols):
-                self.Q[(r, c)] = {}
-                for i in signal_availability.keys():
-                    if i == (r, c):
-                        for ant in signal_availability[i]:
-                            self.Q[(r, c)][ant] = 0
+                state = (r, c)
+                self.Q[state] = {ant: 0.0 for ant in signal_availability.get(state, [])}
+                self.movement_Q[state] = {action: 0.0 for action in self.actions}
         self.Model = {}

@@ -22,12 +22,12 @@ Two environment modes are available:
 
 This is the most important detail to understand before running the project:
 
-- The learned Q-values are keyed by grid state and antenna choice.
-- The reward function gives `+100` for reaching the goal, `-1` for a handover, and `0` otherwise.
-- Movement actions (`up`, `down`, `left`, `right`) are selected randomly in the current implementation.
-- Because of that, the project currently learns handover preference per state more directly than it learns route planning.
+- The agent now learns two linked policies: movement direction and antenna preference.
+- The movement policy uses a Q-table over grid state and action (`up`, `down`, `left`, `right`).
+- The antenna policy still learns which serving cell is best for each state.
+- The reward function combines goal completion, progress toward the goal, handover cost, invalid-move penalties, and a small bonus for link stability.
 
-So the repository is best read as a handover-selection experiment inside a simplified mobility simulator, not as a full end-to-end mobility policy optimizer.
+So the repository now behaves more like a small joint mobility-and-handover optimizer, while still remaining a simplified educational simulator rather than a radio-accurate 5G system.
 
 ## Repository Layout
 
@@ -154,6 +154,8 @@ python main.py --dataset-root 5G-production-dataset --app Netflix --app Download
 | `--lr` | Learning rate. Default: `0.1`. |
 | `--gamma` | Discount factor. Default: `0.95`. |
 | `--epsilon` | Initial exploration rate. Default: `0.82`. |
+| `--min-epsilon` | Floor for exploration after decay. Default: `0.05`. |
+| `--epsilon-decay-fraction` | Fraction of training used to decay epsilon toward the minimum. Default: `0.9`. |
 | `--max-steps` | Per-episode step cap. |
 | `--plot-dir` | Output folder for generated plots. |
 
@@ -163,7 +165,7 @@ python main.py --dataset-root 5G-production-dataset --app Netflix --app Download
 
 - `Rewards_vs_Episodes_Sampled.png`
 - `Handovers_vs_Episodes_Sampled.png`
-- `Cumulative_Success.png`
+- `Cumulative_Success.png` (running success ratio, not a raw count)
 - `Steps_vs_Episodes_Sampled.png`
 - `Cumulative_Rewards_Sampled.png`
 - `Histogram_of_Handovers.png`
@@ -221,8 +223,8 @@ The following commands were smoke-tested locally in this repository:
 
 ## Current Limitations
 
-- Movement is random, so the learned policy does not yet optimize route selection.
-- The reward signal is intentionally simple and does not directly model throughput, latency, or signal quality.
+- The reward signal is still a simplified proxy and does not directly model throughput, latency, RSRP, SINR, or packet loss.
+- Movement and handover are learned with tabular Q-learning, so the approach will not scale as smoothly as deep RL methods on larger state spaces.
 - Dataset mode uses coarse spatial binning plus nearest-bin fallback, which is useful for experimentation but not a radio-accurate simulator.
 - Training logs are very verbose because every step is printed to the console.
 

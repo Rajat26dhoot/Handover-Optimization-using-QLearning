@@ -36,6 +36,6 @@ Thumbs.db
 metrics_plots/
 dashboard_plots/
 qlearning_plots/
-
-# Local dataset copy
-5G-production-dataset/
+PROJECT_EXPLANATION.md
+PROJECT_REPORT.txt
+REPORT_REQUIREMENTS.txt
